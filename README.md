@@ -8,7 +8,7 @@
 
 ## 安装插件 ##
 
-Chrome -> Setting Tab -> More tools -> Extensions -> Load unpacked extension... -> select root folder
+Chrome -> Setting Tab -> More tools -> Extensions -> check Developer Mode -> Load unpacked extension... -> select root folder
 
 ## 使用 ##
 

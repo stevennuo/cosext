@@ -1,5 +1,5 @@
 var inject = function () {
-        document.head.appendChild((function () {
+    document.head.appendChild((function () {
 
             var fn = function bootstrap(window) {
 
@@ -48,13 +48,14 @@ var inject = function () {
                 }
 
                 var Cosext = {
+                    cb: 'http://yangcong345.com/#/cb/editor',
                     elements: [
                         {
                             name: 'prob',
                             selector: '#problem-body-content',
                             type: '题干',
-                            comment: function (input, e) {
-                                var problem = $('gh-math-problem').scope().problemCtl.current_problem;
+                            comment: function (mathCache, input, slc) {
+                                var problem = mathCache.current_problem;
                                 return "题目id: " + problem._id + '\n'
                                     + '题干: ' + problem.body + '\n'
                                     + '##问题描述: ' + input;
@@ -64,9 +65,9 @@ var inject = function () {
                             name: 'choice',
                             selector: '.choice',
                             type: '选项',
-                            comment: function (input, e) {
-                                var problem = $('gh-math-problem').scope().problemCtl.current_problem;
-                                var choice = e.scope().choice;
+                            comment: function (mathCache, input, slc) {
+                                var problem = mathCache.current_problem;
+                                var choice = slc.scope().choice;
                                 return "题目id: " + problem._id + '\n'
                                     + '题干: ' + problem.body + '\n'
                                     + '选项: ' + choice.body + '\n'
@@ -77,7 +78,7 @@ var inject = function () {
                             name: 'video',
                             selector: 'gh-hyper-video',
                             type: '视频',
-                            comment: function (input, e) {
+                            comment: function (mathCache, input, slc) {
                                 return "##视频问题: " + input;
                             }
                         },
@@ -85,8 +86,8 @@ var inject = function () {
                             name: 'expl',
                             selector: '#tool-nav',
                             type: '解析',
-                            comment: function (input, e) {
-                                var problem = $('gh-math-problem').scope().problemCtl.current_problem;
+                            comment: function (mathCache, input, slc) {
+                                var problem = mathCache.current_problem;
                                 return "题目id: " + problem._id + '\n'
                                     + '题干: ' + problem.body + '\n'
                                     + '解析: ' + problem.expl + '\n'
@@ -96,22 +97,32 @@ var inject = function () {
                             name: 'answer',
                             selector: '.judge-answer',
                             type: '答案',
-                            comment: function (input, e) {
-                                var problem = $('gh-math-problem').scope().problemCtl.current_problem;
+                            comment: function (mathCache, input, slc) {
+                                var problem = mathCache.current_problem;
                                 return "题目id: " + problem._id + '\n'
                                     + '题干: ' + problem.body + '\n'
                                     + '##答案问题: ' + input;
                             }
                         }],
 
-                    format: function (type, text) {
-                        var ctrl = $('.topic-information').scope().taskCtl;
-                        var topic = ctrl.current_topic;
-                        var task = ctrl.current_task;
-                        var activity = ctrl.current_activity;
-                        return type + '问题: \n'
-                            + '知识点: ' + topic.name + ' 任务: ' + task.type + ' 活动: ' + activity.name + '\n'
-                            + text + '\n';
+                    format: function (mathCache, e, input, slc) {
+                        var topic = mathCache.current_topic;
+                        var task = mathCache.current_task;
+                        var activity = mathCache.current_activity;
+                        return e.type + '问题: \n'
+                            + '知识点: ' + topic.name + ' 任务: ' + task.type + ' 活动/视频名称: ' + activity.name + '\n'
+                            + e.comment(mathCache, input, slc) + '\n'
+                            + '##[修改链接，请先以课程编辑身份登录](' + this.link(mathCache) + ')\n';
+                    },
+
+                    link: function (mathCache) {
+                        return Cosext.cb + '/chapter/' + mathCache.current_chapter._id
+                            + '/contents/topic/' + mathCache.current_topic._id
+                            + '/task/' + mathCache.current_task.type + '/' + mathCache.current_task._id
+                            + '/activity/' + mathCache.current_activity._id + (mathCache.current_problem ?
+                                ('/tag/problem/' + mathCache.current_problem.type + '/' +
+                                mathCache.current_problem._id ) : '');
+
                     },
 
                     add: function () {
@@ -127,20 +138,23 @@ var inject = function () {
                                 + '" type="text" style="color: #ff0000;" placeholder="' + text + '"/><button id="'
                                 + clas + 'button' + index + '">提交</button></div>');
                                 $('#' + clas + 'button' + index).click(function () {
-                                    var output = Cosext.format(e.type, e.comment($('#' + clas + 'input' + index).val(), slctr));
+                                    var output = Cosext.format(
+                                        angular.element(document.body).injector().get('MathCache'),
+                                        e, $('#' + clas + 'input' + index).val(), slctr);
                                     $.ajax({
                                         method: "POST",
                                         url: "https://trello.com/1/lists/5530b78881c964ef30f5cc2d/cards?key=c3ffcadf2354345a9bb1a63f72e019e1&token=3d980f8dfc435239f58257da2f9bce19c9b68185fb2f6320141721957bfac44a",
                                         data: {name: e.type, "due": null, desc: output}
                                     })
-                                        .done(function(msg) {
+                                        .done(function (msg) {
                                             $('#' + clas + 'input' + index).val('');
                                             alert('问题提交成功');
                                         });
                                 })
                             })
-
                         });
+                        // fix bug: 不断做题，选项填空会不断增多
+                        $('.choice').last().nextAll('.cosext-class-choice').remove();
                     },
 
 
@@ -172,11 +186,9 @@ var inject = function () {
             script.innerHTML = '(' + fn.toString() + '(window))';
 
             return script;
-        }()
-        ))
-        ;
-    }
-    ;
+        }())
+    );
+};
 
 chrome.runtime.sendMessage({type: 'status'});
 
