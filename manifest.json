@@ -9,7 +9,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["http://yangcong345.com/*","http://www.yangcong345.com/*"],
+      "matches": ["http://yangcong345.com/*","http://www.yangcong345.com/*","http://192.168.3.100/*"],
       "js": ["inject.js"],
       "run_at": "document_start"
     }
@@ -21,6 +21,7 @@
   "permissions": [
     "activeTab","storage",
     "http://yangcong345.com/",
-    "http://www.yangcong345.com/"
+    "http://www.yangcong345.com/",
+    "http://192.168.3.100/"
   ]
 }

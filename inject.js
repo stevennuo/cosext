@@ -48,7 +48,7 @@ var inject = function () {
                 }
 
                 var Cosext = {
-                    cb: 'http://yangcong345.com/#/cb/editor',
+                    cb: 'http://' + window.location.host + '/#/cb/editor',
                     elements: [
                         {
                             name: 'prob',
@@ -144,7 +144,10 @@ var inject = function () {
                                     $.ajax({
                                         method: "POST",
                                         url: "https://trello.com/1/lists/5530b78881c964ef30f5cc2d/cards?key=c3ffcadf2354345a9bb1a63f72e019e1&token=3d980f8dfc435239f58257da2f9bce19c9b68185fb2f6320141721957bfac44a",
-                                        data: {name: e.type, "due": null, desc: output}
+                                        data: {
+                                            name: e.type + ' - ' + window.location.host,
+                                            "due": null, desc: output
+                                        }
                                     })
                                         .done(function (msg) {
                                             $('#' + clas + 'input' + index).val('');
